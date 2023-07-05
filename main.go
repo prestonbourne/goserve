@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
-	"github.com/prestonbourne/goserve/services"
+	controllers "github.com/prestonbourne/goserve/controllers"
 )
 
 func main() {
-	services.ReadWholeFile("file.json")
-	fmt.Println("Exit Code 0")
+	fmt.Println("running")
+	server := &controllers.PlayerServer{}
+	log.Fatal(http.ListenAndServe(":5000", server))
+
 }
