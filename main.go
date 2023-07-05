@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-func main(){
-	fmt.Println("Hey")
+	"github.com/prestonbourne/goserve/services"
+)
+
+func main() {
+	services.ReadWholeFile("file.json")
+	fmt.Println("Exit Code 0")
 }
