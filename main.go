@@ -5,12 +5,19 @@ import (
 	"log"
 	"net/http"
 
-	controllers "github.com/prestonbourne/goserve/controllers"
+	"github.com/prestonbourne/goserve/controllers"
 )
 
 func main() {
-	fmt.Println("running")
-	server := &controllers.PlayerServer{}
-	log.Fatal(http.ListenAndServe(":5000", server))
+
+	port := 5000
+	addr := fmt.Sprintf(":%v", port)
+	fmt.Println("Server running on " + addr)
+	defaultStore := &controllers.InMemoryPlayerStore{Scores: make(map[string]int)}
+	server := &controllers.PlayerServer{Store: defaultStore}
+	err := http.ListenAndServe(addr, server)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }

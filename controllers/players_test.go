@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +16,15 @@ type StubPlayerStore struct {
 func (s *StubPlayerStore) GetPlayerScore(name string) (int, bool) {
 	score, exists := s.scores[name]
 	return score, exists
+}
+
+func (store *StubPlayerStore) CreatePlayer(name string, score int) error {
+	_, ok := store.scores[name]
+	if ok {
+		return errors.New("Player already exists not")
+	}
+	store.scores[name] = score
+	return nil
 }
 
 func (s *StubPlayerStore) RecordWin(name string) {
