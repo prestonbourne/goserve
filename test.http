@@ -12,8 +12,9 @@ GET http://localhost:5000/players
 
 ###
 
-PATCH  http://localhost:5000/players/Preston
+PATCH  http://localhost:5000/players
 
 {
+    "name": "Preston",
     "score": 3348
 }

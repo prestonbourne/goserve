@@ -7,39 +7,46 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/prestonbourne/goserve/db"
 )
 
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("received")
+	w.Header().Set("Content-Type", "application/json")
+
 	switch r.Method {
 	case http.MethodPost:
 		// POST /players
-		if r.URL.Path == "/players" {
-			var jsonRequest AddPlayerRequest
-			dec := json.NewDecoder(r.Body)
-			err := dec.Decode(&jsonRequest)
-			if err != nil {
-				http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
-				return
-			}
-			if jsonRequest.Name == "" {
-				http.Error(w, "invalid player name", http.StatusBadRequest)
-				return
-			}
-			if jsonRequest.Score < 0 {
-				http.Error(w, "invalid player score", http.StatusBadRequest)
-				return
-			}
-			err = p.Store.CreatePlayer(jsonRequest.Name, jsonRequest.Score)
-			if err != nil {
-				var existErr errUserExists
-				if errors.Is(err, &existErr) {
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				}
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+
+		var jsonRequest AddPlayerRequest
+		dec := json.NewDecoder(r.Body)
+		err := dec.Decode(&jsonRequest)
+		if err != nil {
+			http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
+			return
 		}
+		if jsonRequest.Name == "" {
+			http.Error(w, "invalid player name", http.StatusBadRequest)
+			return
+		}
+		if jsonRequest.Score < 0 {
+			http.Error(w, "invalid player score", http.StatusBadRequest)
+			return
+		}
+		err = p.Store.CreatePlayer(jsonRequest.Name, jsonRequest.Score)
+		p.DB.AddPlayer(db.Player(jsonRequest))
+		if err != nil {
+			var existErr errUserExists
+			if errors.Is(err, &existErr) {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 	case http.MethodGet:
 		// GET /players/<name/id>
 
@@ -65,25 +72,27 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			fmt.Fprintf(w, player+"has "+fmt.Sprint(score)+" points")
 		}
+		p.DB.GetPlayers()
 	case http.MethodPatch, http.MethodPut:
 
-		player := strings.TrimPrefix(r.URL.Path, "/players/")
-		if player != r.URL.Path {
-			_, exists := p.Store.GetPlayerScore(player)
-			if !exists {
-				w.WriteHeader(http.StatusNotFound)
-				fmt.Fprintf(w, "Player Does not exist")
-				return
-			}
-			var jsonRequest UpdatePlayerScoreRequest
-			dec := json.NewDecoder(r.Body)
-			err := dec.Decode(&jsonRequest)
+		var jsonRequest UpdatePlayerScoreRequest
 
-			if err == nil {
-				p.Store.UpdatePlayerScore(player, jsonRequest.Score)
-				newScore, _ := p.Store.GetPlayerScore(player)
-				fmt.Fprintf(w, player+" has "+fmt.Sprint(newScore)+" points")
-			}
+		dec := json.NewDecoder(r.Body)
+		err := dec.Decode(&jsonRequest)
+
+		_, exists := p.Store.GetPlayerScore(jsonRequest.Name)
+		if !exists {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "Player Does not exist")
+			return
+		}
+
+		if err == nil {
+			p.Store.UpdatePlayerScore(jsonRequest.Name, jsonRequest.Score)
+			newScore, _ := p.Store.GetPlayerScore(jsonRequest.Name)
+			// think of a better name since I'm using the same type for res response
+			res := UpdatePlayerScoreRequest{Name: jsonRequest.Name, Score: newScore}
+			json.NewEncoder(w).Encode(res)
 
 		}
 

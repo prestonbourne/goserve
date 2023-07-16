@@ -1,6 +1,10 @@
 package controllers
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/prestonbourne/goserve/db"
+)
 
 // using an in memory store until I can get a DB or filesystem storage fired up
 type PlayerStore interface {
@@ -9,8 +13,14 @@ type PlayerStore interface {
 	UpdatePlayerScore(name string, newScore int) error
 }
 
+type PlayerDB interface {
+	GetPlayers()
+	AddPlayer(player db.Player)
+}
+
 type PlayerServer struct {
 	Store PlayerStore
+	DB    *db.PostgresStore
 }
 
 type errUserExists struct{}
@@ -65,5 +75,6 @@ type AddPlayerRequest struct {
 }
 
 type UpdatePlayerScoreRequest struct {
+	Name  string
 	Score int
 }
