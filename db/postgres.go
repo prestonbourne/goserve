@@ -17,7 +17,7 @@ CREATE TABLE players (
 );
 `
 
-func NewPostgresStore(ctx context.Context, dbURL string) (*PostgresStore, error) {
+func Init(ctx context.Context, dbURL string) (*sql.DB, error) {
 	connConfig, err := pgx.ParseConfig(dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse DB URL: %w", err)
@@ -35,7 +35,5 @@ func NewPostgresStore(ctx context.Context, dbURL string) (*PostgresStore, error)
 	// }
 
 	fmt.Println("[success]: Connected to postgres!")
-	return &PostgresStore{
-		db: db,
-	}, nil
+	return db, nil
 }
