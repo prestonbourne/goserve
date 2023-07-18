@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -23,4 +24,24 @@ func DecodeAndWrite(r *http.Request, val any) error {
 		return err
 	}
 	return nil
+}
+
+const reset string = "\u001b[0m"
+
+func LogError(text string, err error) {
+	const red string = "\u001b[31m"
+	output := fmt.Sprintf(red + "[Failure]: " + reset + text + "\n")
+	fmt.Println(output+"%v", err)
+}
+
+func Throw(text string, err error) {
+	const red string = "\u001b[31m"
+	output := fmt.Sprintf(red + "[Error]: " + reset + text + "\n%v")
+	log.Fatalln(output, err)
+}
+
+func Success(text string) {
+	const green string = "\u001b[32m"
+	output := fmt.Sprintf(green + "[Success]: " + reset + text)
+	fmt.Println(output)
 }

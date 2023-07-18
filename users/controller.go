@@ -28,29 +28,20 @@ func (c *UserController) Add(w http.ResponseWriter, r *http.Request) error {
 	newUser := NewUser(addUserReq.FirstName, addUserReq.LastName, addUserReq.UserName)
 
 	//todo:
-	c.store.AddUser(newUser.FirstName, newUser.LastName, newUser.UserName, newUser.CreatedAt.UTC().String())
+	c.store.AddUser(newUser.FirstName, newUser.LastName, newUser.UserName, newUser.CreatedAt.UTC())
 
 	return utils.WriteJSON(w, http.StatusOK, newUser)
 }
 
-// func (c *UserController) GetAll(w http.ResponseWriter, r *http.Request) error {
-// 	//id := mux.Vars(r)["id"]
-// 	todo := NewUser("Nothing here yet...")
-// 	return utils.WriteJSON(w, http.StatusAccepted, todo)
-// }
+func (c *UserController) GetAll(w http.ResponseWriter, r *http.Request) error {
+	accounts, err := c.store.GetAllUsers()
+	if err != nil {
+		utils.LogError("Failed to fetch accounts from Postgres", err)
+		return utils.WriteJSON(w, http.StatusInternalServerError, "An Unexpected Error Occured")
+	}
+	return utils.WriteJSON(w, http.StatusAccepted, accounts)
+}
+
 // func (c *UserController) GetById(w http.ResponseWriter, r *http.Request) error {
-// 	//id := mux.Vars(r)["id"]
-// 	todo := NewUser("Nothing here yet...")
-// 	return utils.WriteJSON(w, http.StatusAccepted, todo)
-// }
 
-// func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
-
-// 	todo := NewUser("Nothing here yet...")
-// 	return utils.WriteJSON(w, http.StatusAccepted, todo)
-// }
-// func (c *UserController) Update(w http.ResponseWriter, r *http.Request) error {
-
-// 	todo := NewUser("Nothing here yet...")
-// 	return utils.WriteJSON(w, http.StatusAccepted, todo)
 // }

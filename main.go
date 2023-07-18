@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -49,9 +48,11 @@ func (s *APIServer) run() {
 	router.HandleFunc("/todos", makeHTTPHandleFunc(todoController.GetAll)).Methods("GET")
 	router.HandleFunc("/todos/{id}", makeHTTPHandleFunc(todoController.GetById)).Methods("GET")
 	router.HandleFunc("/users", makeHTTPHandleFunc(userController.Add)).Methods("POST")
+	router.HandleFunc("/users", makeHTTPHandleFunc(userController.GetAll)).Methods("GET")
 
+	utils.Success("Running on" + s.listenAddr)
 	http.ListenAndServe(s.listenAddr, router)
-	fmt.Println("[Success]: Running on", s.listenAddr)
+
 }
 
 func main() {

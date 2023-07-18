@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/prestonbourne/goserve/utils"
 )
 
 // Johan's original schema
@@ -46,17 +47,17 @@ func NewPostgresStore(ctx context.Context, postgresURL string) (*PostgresStore, 
 		return nil, fmt.Errorf("[Failure]: Could not Ping Postgres on Connection: %w", err)
 	}
 
-	fmt.Println("[Success]: Connected to Postgres")
+	utils.Success("Connected to Postgres")
 
 	// create store
 	store := &PostgresStore{
 		db: db,
 	}
 	// init tables
-	fmt.Println("start")
+
 	store.createUsersTable()
 	store.createTodosTable()
-	fmt.Println("stop")
+
 	return store, nil
 }
 
@@ -99,11 +100,11 @@ i can't import the user type because circular dependencies
 how can i make this project structure cleaner 🤔
 */
 
-func (s *PostgresStore) AddUser(firstName string, lastName string, userName string, createdAt string) error {
+func (s *PostgresStore) AddUser(firstName string, lastName string, userName string, createdAt time.Time) error {
 
 	const query string = `INSERT INTO users
 (first_name, last_name, user_name, created_at)
-VALUES ($1, $2, $3, $4, $5)`
+VALUES ($1, $2, $3, $4)`
 
 	resp, err := s.db.Exec(query, firstName, lastName, userName, createdAt)
 
@@ -114,4 +115,26 @@ VALUES ($1, $2, $3, $4, $5)`
 	fmt.Printf("%+v\n", resp)
 
 	return nil
+}
+
+func (s *PostgresStore) GetAllUsers() ([]*User, error) {
+	rows, err := s.db.Query("SELECT * FROM users;")
+
+	if err != nil {
+		return nil, err
+	}
+
+	users := []*User{}
+	for rows.Next() {
+		user := User{}
+
+		err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.UserName, &user.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, &user)
+	}
+
+	return users, nil
 }
