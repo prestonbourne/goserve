@@ -14,7 +14,6 @@ import (
 func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("received")
-	w.Header().Set("Content-Type", "application/json")
 
 	switch r.Method {
 	case http.MethodPost:
