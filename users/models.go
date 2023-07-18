@@ -1,8 +1,6 @@
 package users
 
 import (
-	"math/rand"
-
 	"time"
 )
 
@@ -25,6 +23,6 @@ func NewUser(firstName string, lastName string, userName string) *User {
 	//TODO: Find a good system for ID's, how can we expose the ID to the client, should we?
 
 	currentTime := time.Now().UTC()
-
-	return &User{ID: rand.Intn(10000), FirstName: "John", LastName: "Doe", CreatedAt: currentTime, UserName: "working on it"}
+	//ID: rand.Intn(10000),
+	return &User{FirstName: firstName, LastName: lastName, CreatedAt: currentTime, UserName: "working on it"}
 }

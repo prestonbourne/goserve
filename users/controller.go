@@ -28,7 +28,7 @@ func (c *UserController) Add(w http.ResponseWriter, r *http.Request) error {
 	newUser := NewUser(addUserReq.FirstName, addUserReq.LastName, addUserReq.UserName)
 
 	//todo:
-	c.store.AddUser()
+	c.store.AddUser(newUser.FirstName, newUser.LastName, newUser.UserName, newUser.CreatedAt.UTC().String())
 
 	return utils.WriteJSON(w, http.StatusOK, newUser)
 }

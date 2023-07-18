@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -22,6 +23,14 @@ import (
 // might be a good option to learn singletons in GO to ensure one DB connection
 type PostgresStore struct {
 	db *sql.DB
+}
+
+type User struct {
+	ID        int       `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	UserName  string    `json:"userName"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func NewPostgresStore(ctx context.Context, postgresURL string) (*PostgresStore, error) {
@@ -53,12 +62,13 @@ func NewPostgresStore(ctx context.Context, postgresURL string) (*PostgresStore, 
 
 // error handling, should i use context + should it be a pointer
 func (s *PostgresStore) createUsersTable() error {
+	// no trailing commas in SQL query!
 	const query string = `CREATE TABLE IF NOT EXISTS users (
 		id SERIAL PRIMARY KEY,
 		first_name VARCHAR(50),
 		last_name VARCHAR(50),
 		user_name VARCHAR(14),
-		created_at TIMESTAMP,
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);`
 	if _, err := s.db.Exec(query); err != nil {
 		return fmt.Errorf("%w", err)
@@ -71,10 +81,11 @@ func (s *PostgresStore) createTodosTable() error {
 		id SERIAL PRIMARY KEY,
 		is_complete BOOLEAN,
 		content TEXT,
-		last_edited TIMESTAMP
-		created_at TIMESTAMP,
-	);`
+		last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);`
 	if _, err := s.db.Exec(query); err != nil {
+		fmt.Println("%w", err)
 		return fmt.Errorf("%w", err)
 	}
 
@@ -82,6 +93,25 @@ func (s *PostgresStore) createTodosTable() error {
 
 }
 
-func (s *PostgresStore) AddUser() error {
+/*
+having to pass all the params is...pretty ugly,
+i can't import the user type because circular dependencies
+how can i make this project structure cleaner 🤔
+*/
+
+func (s *PostgresStore) AddUser(firstName string, lastName string, userName string, createdAt string) error {
+
+	const query string = `INSERT INTO users
+(first_name, last_name, user_name, created_at)
+VALUES ($1, $2, $3, $4, $5)`
+
+	resp, err := s.db.Exec(query, firstName, lastName, userName, createdAt)
+
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
+	fmt.Printf("%+v\n", resp)
+
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prestonbourne/goserve/store"
 	"github.com/prestonbourne/goserve/todos"
+	"github.com/prestonbourne/goserve/users"
 	"github.com/prestonbourne/goserve/utils"
 )
 
@@ -39,14 +40,18 @@ type ApiError struct {
 	Error string
 }
 
-func (s *APIServer) Init() {
+func (s *APIServer) run() {
 
 	todoController := todos.NewTodoController(s.store)
+	userController := users.NewUserController(s.store)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/todos", makeHTTPHandleFunc(todoController.GetAll)).Methods("GET")
 	router.HandleFunc("/todos/{id}", makeHTTPHandleFunc(todoController.GetById)).Methods("GET")
-	fmt.Println("[Success]: Running on", s.listenAddr)
+	router.HandleFunc("/users", makeHTTPHandleFunc(userController.Add)).Methods("POST")
+
 	http.ListenAndServe(s.listenAddr, router)
+	fmt.Println("[Success]: Running on", s.listenAddr)
 }
 
 func main() {
@@ -58,20 +63,6 @@ func main() {
 	}
 
 	server := newAPIServer(":5000", *store)
-	server.Init()
-
-	// port := "5000"
-	// initStr := fmt.Sprintf("Server running on :%v", port)
-
-	// fmt.Println(initStr)
-
-	// todoHandler := &todos.TodoServer{DB: db}
-	// mux := http.NewServeMux()
-	// mux.Handle("/todos", todoHandler)
-
-	// err = http.ListenAndServe("localhost:5000", mux)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	server.run()
 
 }
