@@ -117,7 +117,7 @@ VALUES ($1, $2, $3, $4)`
 	return nil
 }
 
-func (s *PostgresStore) GetAllUsers() ([]*User, error) {
+func (s *PostgresStore) GetUsers() ([]*User, error) {
 	rows, err := s.db.Query("SELECT * FROM users;")
 
 	if err != nil {
@@ -125,16 +125,50 @@ func (s *PostgresStore) GetAllUsers() ([]*User, error) {
 	}
 
 	users := []*User{}
+	// can this loop be generalized?
 	for rows.Next() {
-		user := User{}
-
-		err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.UserName, &user.CreatedAt)
+		user, err := scanIntoUser(rows)
 		if err != nil {
 			return nil, err
 		}
-
-		users = append(users, &user)
+		users = append(users, user)
 	}
 
 	return users, nil
+}
+func (s *PostgresStore) GetUserByID(id int) (*User, error) {
+	rows, err := s.db.Query("SELECT * FROM users WHERE id = $1;", id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		return scanIntoUser(rows)
+
+	}
+	return nil, fmt.Errorf("Could not find User with id of %v", id)
+}
+
+/*
+Note to future self: explore Soft vs Hard deleting if
+you really get into this and build a UI etc
+*/
+func (s *PostgresStore) DeleteUser(id int) error {
+	_, err := s.db.Query("DELETE FROM users WHERE id = $1;", id)
+
+	if err != nil {
+		return fmt.Errorf("Could not find User with id of %v", id)
+	}
+
+	return nil
+}
+
+func scanIntoUser(rows *sql.Rows) (*User, error) {
+
+	// can this loop be generalized?
+	user := &User{}
+
+	err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.UserName, &user.CreatedAt)
+	return user, err
 }

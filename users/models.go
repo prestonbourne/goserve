@@ -24,5 +24,11 @@ func NewUser(firstName string, lastName string, userName string) *User {
 
 	currentTime := time.Now().UTC()
 	//ID: rand.Intn(10000),
-	return &User{FirstName: firstName, LastName: lastName, CreatedAt: currentTime, UserName: "working on it"}
+	return &User{FirstName: firstName, LastName: lastName, CreatedAt: currentTime, UserName: userName}
 }
+
+/*
+	Java Springboard
+	Brush up on types of testing
+	90% testing, cucumber, J unit, selenium, jenkins, brush up on agile
+*/

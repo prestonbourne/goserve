@@ -36,7 +36,7 @@ type APIServer struct {
 }
 
 type ApiError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 func (s *APIServer) run() {
@@ -45,10 +45,13 @@ func (s *APIServer) run() {
 	userController := users.NewUserController(s.store)
 
 	router := mux.NewRouter()
+	//gotta be a dryer way to do this 😅
 	router.HandleFunc("/todos", makeHTTPHandleFunc(todoController.GetAll)).Methods("GET")
 	router.HandleFunc("/todos/{id}", makeHTTPHandleFunc(todoController.GetById)).Methods("GET")
 	router.HandleFunc("/users", makeHTTPHandleFunc(userController.Add)).Methods("POST")
 	router.HandleFunc("/users", makeHTTPHandleFunc(userController.GetAll)).Methods("GET")
+	router.HandleFunc("/users/{id}", makeHTTPHandleFunc(userController.GetById)).Methods("GET")
+	router.HandleFunc("/users/{id}", makeHTTPHandleFunc(userController.Delete)).Methods("DELETE")
 
 	utils.Success("Running on" + s.listenAddr)
 	http.ListenAndServe(s.listenAddr, router)

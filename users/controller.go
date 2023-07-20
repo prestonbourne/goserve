@@ -34,14 +34,48 @@ func (c *UserController) Add(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (c *UserController) GetAll(w http.ResponseWriter, r *http.Request) error {
-	accounts, err := c.store.GetAllUsers()
+	users, err := c.store.GetUsers()
 	if err != nil {
 		utils.LogError("Failed to fetch accounts from Postgres", err)
 		return utils.WriteJSON(w, http.StatusInternalServerError, "An Unexpected Error Occured")
 	}
-	return utils.WriteJSON(w, http.StatusAccepted, accounts)
+	return utils.WriteJSON(w, http.StatusAccepted, users)
 }
 
-// func (c *UserController) GetById(w http.ResponseWriter, r *http.Request) error {
+func (c *UserController) GetById(w http.ResponseWriter, r *http.Request) error {
 
-// }
+	id, err := utils.GetId(r)
+
+	if err != nil {
+		return utils.WriteJSON(w, http.StatusBadRequest, err)
+	}
+
+	user, err := c.store.GetUserByID(id)
+	if err != nil {
+		return utils.WriteJSON(w, http.StatusInternalServerError, err.Error())
+	}
+	return utils.WriteJSON(w, http.StatusAccepted, user)
+}
+
+func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
+	id, err := utils.GetId(r)
+
+	if err != nil {
+		return utils.WriteJSON(w, http.StatusBadRequest, err)
+	}
+
+	user, err := c.store.GetUserByID(id)
+
+	if err != nil {
+		return utils.WriteJSON(w, http.StatusInternalServerError, err)
+	}
+
+	err = c.store.DeleteUser(id)
+
+	if err != nil {
+		return utils.WriteJSON(w, http.StatusInternalServerError, err)
+	}
+
+	return utils.WriteJSON(w, http.StatusAccepted, fmt.Sprintf("Deleted: %+v", user))
+
+}

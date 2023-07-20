@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 func WriteJSON(w http.ResponseWriter, statusCode int, v any) error {
@@ -44,4 +47,13 @@ func Success(text string) {
 	const green string = "\u001b[32m"
 	output := fmt.Sprintf(green + "[Success]: " + reset + text)
 	fmt.Println(output)
+}
+
+func GetId(r *http.Request) (int, error) {
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return 0, fmt.Errorf("Invalid ID, expected integer. Received %v", idStr)
+	}
+	return id, nil
 }
