@@ -150,6 +150,20 @@ func (s *PostgresStore) GetUserByID(id int) (*User, error) {
 	return nil, fmt.Errorf("Could not find User with id of %v", id)
 }
 
+func (s *PostgresStore) GetUserByUsername(username string) (*User, error) {
+	rows, err := s.db.Query("SELECT * FROM users WHERE username = $1;", username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		return scanIntoUser(rows)
+
+	}
+	return nil, fmt.Errorf("Could not find User: %v", username)
+}
+
 /*
 Note to future self: explore Soft vs Hard deleting if
 you really get into this and build a UI etc
