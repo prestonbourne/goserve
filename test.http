@@ -1,20 +1,22 @@
-POST http://localhost:5000/players
+GET http://localhost:5000/users
+
+###
+
+GET http://localhost:5000/todos
+
+### 
+
+POST  http://localhost:5000/todos
 
 {
-    "name": "Preston",
-    "score": 31
+    "content": "..."
+    
 }
 
-
-###
-
-GET http://localhost:5000/players
-
-###
-
-PATCH  http://localhost:5000/players
-
-{
-    "name": "Preston",
-    "score": 3348
+type Todo struct {
+	ID         int       `json:"id"`
+	Complete   bool      `json:"isComplete"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"createdAt"`
+	LastEdited time.Time `json:"lastEdited"`
 }

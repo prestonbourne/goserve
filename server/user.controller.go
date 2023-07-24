@@ -1,4 +1,4 @@
-package users
+package server
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/prestonbourne/goserve/models"
 	"github.com/prestonbourne/goserve/store"
 	"github.com/prestonbourne/goserve/utils"
 )
@@ -22,12 +23,12 @@ func NewUserController(store store.PostgresStore) *UserController {
 
 func (c *UserController) Add(w http.ResponseWriter, r *http.Request) error {
 
-	addUserReq := &CreateUserRequest{}
+	addUserReq := &models.AddUserRequest{}
 	// I tried to make the second param for
 	if err := utils.DecodeAndWrite(r, addUserReq); err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	newUser, _ := NewUser(
+	newUser, _ := models.NewUser(
 		addUserReq.FirstName,
 		addUserReq.LastName,
 		addUserReq.UserName,
@@ -88,7 +89,7 @@ func (c *UserController) Delete(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (c *UserController) Login(w http.ResponseWriter, r *http.Request) error {
-	var req LoginRequest
+	var req models.LoginRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return err
@@ -116,7 +117,7 @@ func validateJWT(tokenStr string) (*jwt.Token, error) {
 		return []byte(jwtSecret), nil
 	})
 }
-func createJWT(user *User) (string, error) {
+func createJWT(user *models.User) (string, error) {
 
 	claims := &jwt.MapClaims{
 		"expiresAt": 15000,

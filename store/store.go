@@ -55,15 +55,18 @@ func NewPostgresStore(ctx context.Context, postgresURL string) (*PostgresStore, 
 	}
 	// init tables
 
-	store.createUsersTable()
-	store.createTodosTable()
+	// TODO(preston): Handle errors
+	_ = store.createUsersTable()
+	_ = store.createTodosTable()
 
 	return store, nil
 }
 
 // error handling, should i use context + should it be a pointer
+// create new table that supports passwords
 func (s *PostgresStore) createUsersTable() error {
-	// no trailing commas in SQL query!
+
+	// look into TEXT checks for SQL,consider not using VARCHAR()
 	const query string = `CREATE TABLE IF NOT EXISTS users (
 		id SERIAL PRIMARY KEY,
 		first_name VARCHAR(50),
@@ -80,6 +83,7 @@ func (s *PostgresStore) createUsersTable() error {
 func (s *PostgresStore) createTodosTable() error {
 	const query string = `CREATE TABLE IF NOT EXISTS todos (
 		id SERIAL PRIMARY KEY,
+		author_id SERIAL NOT NULL REFERENCES users(id),
 		is_complete BOOLEAN,
 		content TEXT,
 		last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -90,6 +94,7 @@ func (s *PostgresStore) createTodosTable() error {
 		return fmt.Errorf("%w", err)
 	}
 
+	// SELECT * FROM todos LEFT JOIN users ON todos.author_id = users.id;
 	return nil
 
 }
@@ -100,13 +105,13 @@ i can't import the user type because circular dependencies
 how can i make this project structure cleaner 🤔
 */
 
-func (s *PostgresStore) AddUser(firstName string, lastName string, userName string, createdAt time.Time) error {
+func (s *PostgresStore) AddUser(ctx context.Context, firstName string, lastName string, userName string, createdAt time.Time) error {
 
 	const query string = `INSERT INTO users
 (first_name, last_name, user_name, created_at)
 VALUES ($1, $2, $3, $4)`
 
-	resp, err := s.db.Exec(query, firstName, lastName, userName, createdAt)
+	resp, err := s.db.ExecContext(ctx, query, firstName, lastName, userName, createdAt)
 
 	if err != nil {
 		fmt.Printf("%+v\n", err)
